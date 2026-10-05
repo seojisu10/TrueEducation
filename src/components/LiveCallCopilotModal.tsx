@@ -22,6 +22,7 @@ import {
   Wand2,
 } from 'lucide-react';
 import { getLiveCoachingScript } from '../utils/engine';
+import { apiFetch } from '../utils/api';
 
 interface LiveCallCopilotModalProps {
   isOpen: boolean;
@@ -259,7 +260,7 @@ export const LiveCallCopilotModal: React.FC<LiveCallCopilotModalProps> = ({
     setIsGeneratingScenario(true);
     setScenarioBuilderError('');
     try {
-      const response = await fetch('/api/gemini/generate-scenario', {
+      const response = await apiFetch('/api/gemini/generate-scenario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scenarioBuilderForm),
@@ -325,7 +326,7 @@ export const LiveCallCopilotModal: React.FC<LiveCallCopilotModalProps> = ({
 
     try {
       const currentSc = scenarios[selectedScenarioIndex] || DEFAULT_CALL_SCENARIOS[0];
-      const res = await fetch('/api/gemini/call-simulate', {
+      const res = await apiFetch('/api/gemini/call-simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

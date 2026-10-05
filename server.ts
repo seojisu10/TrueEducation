@@ -3,14 +3,26 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
-const port = 3000;
+const port = Number(process.env.PORT) || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(express.json());
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Initialize Google GenAI client if GEMINI_API_KEY is available
 const apiKey = process.env.GEMINI_API_KEY;
@@ -478,15 +490,31 @@ app.post('/api/gemini/generate-scenario', async (req, res) => {
 
 // Setup Vite middlewares for SSR/dev server
 async function startServer() {
-  const vite = await createViteServer({
-    server: { middlewareMode: true },
-    appType: 'spa',
-  });
+  if (!isProduction) {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
 
-  app.use(vite.middlewares);
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.resolve(__dirname, 'dist');
+    app.use(express.static(distPath));
+
+    app.get(/^(?!\/api\/).*/, (req, res) => {
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
 
   app.listen(port, '0.0.0.0', () => {
-    console.log(`True Education dev server running at http://localhost:${port}`);
+    console.log(
+      isProduction
+        ? `True Education production server running at http://localhost:${port}`
+        : `True Education dev server running at http://localhost:${port}`,
+    );
   });
 }
 

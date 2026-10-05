@@ -23,6 +23,7 @@ import {
   Brain,
 } from 'lucide-react';
 import { RoleplayMessage, Student } from '../types';
+import { apiFetch } from '../utils/api';
 
 interface RoleplayScenario {
   id: string;
@@ -218,7 +219,7 @@ export const RoleplaySimulatorModal: React.FC<RoleplaySimulatorModalProps> = ({
         setAgentStep('③ 교사 법적 방어 채점 루브릭 및 키워드 생성 중...');
       }, 1400);
 
-      const res = await fetch('/api/gemini/generate-scenario', {
+      const res = await apiFetch('/api/gemini/generate-scenario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(builderForm),
@@ -282,7 +283,7 @@ export const RoleplaySimulatorModal: React.FC<RoleplaySimulatorModalProps> = ({
     setIsSimulatingResponse(true);
 
     try {
-      const res = await fetch('/api/gemini/call-simulate', {
+      const res = await apiFetch('/api/gemini/call-simulate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
